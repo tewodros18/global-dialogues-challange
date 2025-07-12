@@ -9,6 +9,11 @@
 	import { scale } from 'svelte/transition';
     const { Tween, Easing, update } = TWEEN;
     const { getProject, types} = theatrecore;
+    import {featuresCity} from './locations/locations.js'
+    import {shortSocialSummaries} from './locations/data.js';
+    //@ts-ignore
+    import {Text} from 'troika-three-text';
+	import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
     if(browser){
         const textureLoader = new THREE.TextureLoader();
@@ -18,6 +23,7 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setAnimationLoop(animate);
         document.body.appendChild(renderer.domElement);
+    
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -26,6 +32,52 @@
         dollyNode.add(camera);
         scene.add(dollyNode);
 
+
+        // --- CSS2D Renderer ---
+        const css2DRenderer = new CSS2DRenderer();
+        css2DRenderer.setSize(window.innerWidth, window.innerHeight);
+        css2DRenderer.domElement.style.position = 'absolute';
+        css2DRenderer.domElement.style.top = '0px';
+        css2DRenderer.domElement.style.pointerEvents = 'none';
+        document.body.appendChild(css2DRenderer.domElement);
+
+        // create an AudioListener and add it to the camera
+        const listener = new THREE.AudioListener();
+        camera.add(listener);
+
+        // create a global audio source
+        const sound = new THREE.Audio(listener);
+
+        // load a sound and set it as the Audio object's buffer
+        const audioLoader = new THREE.AudioLoader();
+        
+        if (!sound.isPlaying){
+            audioLoader.load( 'audio/silent-movie-ragtime-clumsy-elegance-295463.mp3', function( buffer ) {
+            sound.setBuffer( buffer );
+            sound.setLoop( true );
+            sound.setVolume( 0.5 );
+            sound.play();
+        });
+        }
+        
+        var alltextures = [];
+        const p = document.createElement('p');
+        p.textContent = '';
+        p.style.width = '18%';
+        p.style.fontFamily  = 'Inter';
+        p.style.fontSize = '1.2rem';
+        p.style.color = 'black';
+        p.style.fontWeight = '800';
+        //@ts-ignore
+        const peepIdea = new CSS2DObject(p);
+        peepIdea.position.set(-2.28, 0, -2); // Position the text in front of the camera
+        dollyNode.add(peepIdea);
+
+
+        Object.keys(featuresCity).forEach(element => {
+            alltextures.push(textureLoader.load(featuresCity[element].texture));
+        });
+        
 
         texture = textureLoader.load('camera.png')
         texture.colorSpace = THREE.SRGBColorSpace;
@@ -97,23 +149,49 @@
         dollyNode.add(stamp);
         dollyNode.add(stamp1);
 
+        texture = textureLoader.load('home.png')
+        texture.colorSpace = THREE.SRGBColorSpace;
+        const home = new THREE.Mesh(
+            new THREE.BoxGeometry(2.9,1.6,0.0001),
+            new THREE.MeshBasicMaterial({ map: texture, transparent: true })
+        );
+
+        scene.add(home);
+        home.position.set(-0.2, -1.5, -3);
+
+        texture = textureLoader.load('hint.png')
+        texture.colorSpace = THREE.SRGBColorSpace;
+        const hint = new THREE.Mesh(
+            new THREE.BoxGeometry(1.3,1,0.0001),
+            new THREE.MeshBasicMaterial({ map: texture, transparent: true })
+        );
+
+        scene.add(hint);
+        hint.position.set(0.6, -1.20, -3);
+        //hint.rotation.z = Math.PI / 6; // Rotate the hint to face the camera
+
 
         /**
          * Walking peeps section
          * 
         */
-        const peepsArray = [Math.random() * 0.009 + 0.004,Math.random() * 0.009 + 0.004,Math.random() * 0.009 + 0.004];
+
+        //@ts-ignore
+        var peepsArray = [];
+
         const peepsGroup = new THREE.Group();
         var peepZindex = -2.5;
         var runningMinHeight = -1.1;
-        peepsArray.forEach(element => {
-            texture = textureLoader.load('./characters/peep-16.png')
+        for(let i = 0; i < 12; i++) {
+            peepsArray.push(Math.random() * 0.007 + 0.004)
+            texture = textureLoader.load(`./characters/peep-standing-${Math.floor(Math.random() * 30) + 1}.png`)
             texture.colorSpace = THREE.SRGBColorSpace;
-            const randomHeight = Math.random() * (-1.1 - -1.5) + (-1.5); // Random height between (max - min)
+            const randomHeight = Math.random() * (-1.5 - -1.85) + (-1.85); // Random height between (max - min)
             const peepInt1 = new THREE.Mesh(
-                new THREE.BoxGeometry(0.9, 1.3, 0.0001),
+                new THREE.BoxGeometry(0.5, 1.3, 0.0001),
                 new THREE.MeshBasicMaterial({ map: texture, transparent: true })
             );
+            peepInt1.name = `peep`;
             peepsGroup.add(peepInt1);
             peepInt1.position.set(-4.2, randomHeight, peepZindex);
             if(randomHeight < runningMinHeight) {
@@ -123,64 +201,17 @@
                 peepZindex -= 0.01;
             }
 
-        });
+        };
         
         
-        //peepsGroup.visible= false;
+        peepsGroup.visible= false;
         dollyNode.add(peepsGroup);
         
-
-
-        /**
-         * Globe page section
-         */
-        
-        const globeBaseNode = new THREE.Object3D();
-        scene.add(globeBaseNode);
-
-        texture = textureLoader.load('globe.png')
-        texture.colorSpace = THREE.SRGBColorSpace;
-        const globe = new THREE.Mesh(
-            new THREE.BoxGeometry(3, 3, 0.01),
-            new THREE.MeshBasicMaterial({ map: texture, transparent: true})
-        )
-
-        globe.position.z = -8; 
-        globeBaseNode.add(globe);
-
-        texture = textureLoader.load('./characters/peep-standing-16.png')
-        texture.colorSpace = THREE.SRGBColorSpace;
-        const peep = new THREE.Mesh(
-            new THREE.BoxGeometry(0.25,0.5,0.0001),
-            new THREE.MeshBasicMaterial({ map: texture, transparent: true })
-        );
-
-        scene.add(peep);
-        peep.position.set(0.55, 0.35, -2.5);
-
-        const peep2 = new THREE.Mesh(
-            new THREE.BoxGeometry(0.25,0.5,0.0001),
-            new THREE.MeshBasicMaterial({ map: texture, transparent: true })
-        );
-
-        scene.add(peep2);
-        peep2.position.set(-0.29, -0.25, -2.5);
-
-
-
-        const peep3 = new THREE.Mesh(
-            new THREE.BoxGeometry(0.25,0.5,0.0001),
-            new THREE.MeshBasicMaterial({ map: texture, transparent: true })
-        );
-
-        scene.add(peep3);
-        peep3.position.set(-0.65, 0.35, -2.5);
 
         /**
          * Location section
          * **/
 
-        dollyNode.position.x = 40;
         camUI.visible = false;
 
         texture = textureLoader.load('./plane/sky.png')
@@ -223,32 +254,140 @@
         dollyNode.add(wall);
         wall.position.set(0.5, 0, -2);
 
-        texture = textureLoader.load('./location/brazil.png')
+        texture = textureLoader.load('fast.png')
         texture.colorSpace = THREE.SRGBColorSpace;
-        const locForeground = new THREE.Mesh(
-            new THREE.BoxGeometry(5,4,0.0001),
+        const post = new THREE.Mesh(
+            new THREE.BoxGeometry(1,2,0.0001),
+            new THREE.MeshBasicMaterial({ map: texture, transparent: true })
+        );
+        post.name = 'post';
+
+        dollyNode.add(post);
+        post.position.set(1.5, -0.7, -1.99);
+
+        texture = textureLoader.load('mute.png')
+        texture.colorSpace = THREE.SRGBColorSpace;
+        const muteBtn = new THREE.Mesh(
+            new THREE.BoxGeometry(0.3,0.3,0.000001),
+            new THREE.MeshBasicMaterial({ map: texture, transparent: true })
+        );
+        muteBtn.name = 'mute';
+
+        dollyNode.add(muteBtn);
+        muteBtn.position.set(2.8, 1.33, -1.99);
+
+        texture = textureLoader.load('adv.png')
+        texture.colorSpace = THREE.SRGBColorSpace;
+        const poster = new THREE.Mesh(
+            new THREE.BoxGeometry(1,1.4,0.0001),
             new THREE.MeshBasicMaterial({ map: texture, transparent: true })
         );
 
-        scene.add(locForeground);
-        locForeground.position.set(20, -0.3, -3);
+        poster.name = 'poster'
 
-    
+        dollyNode.add(poster);
+        poster.position.set(-2.3, 0.7, -1.99);
 
-        updateCameraPosition(globeBaseNode);
-        function updateCameraPosition(Node: THREE.Object3D) {
-            camera.position.set(Node.position.x, Node.position.y, Node.position.z);
-            //camera.lookAt(globeBaseNode.position);
-        }
+        texture = textureLoader.load('headline.png')
+        texture.colorSpace = THREE.SRGBColorSpace;
+        const news = new THREE.Mesh(
+            new THREE.BoxGeometry(1.8,3,0.0001),
+            new THREE.MeshBasicMaterial({ map: texture, transparent: true })
+        );
+
+        news.name = 'news'
+
+        dollyNode.add(news);
+        news.visible = false;
+        news.position.set(-2.3, 0, -1.99);
+        
+        Object.keys(featuresCity).forEach((key) => {
+            const currCity = featuresCity[key];
+            console.log(currCity)
+            const textureUnique = textureLoader.load(currCity.texture)
+            textureUnique.colorSpace = THREE.SRGBColorSpace;
+            const cityMesh = new THREE.Mesh(
+                new THREE.BoxGeometry(currCity.sizeX,currCity.sizeY,currCity.sizeZ),
+                new THREE.MeshBasicMaterial({ map: textureUnique, transparent: true })
+            );
+            scene.add(cityMesh);
+            cityMesh.position.set(currCity.dollyPosX, currCity.dollyPosY, currCity.dollyPosZ);
+        });
+
 
         window.addEventListener('resize', () => {
             console.log(window.innerWidth)
             renderer.setSize(window.innerWidth, window.innerHeight);
+            css2DRenderer.setSize(window.innerWidth, window.innerHeight);
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix(); 
         });
 
-    
+        window.addEventListener('beforeunload', () => {
+            // Stop the audio when the page is unloaded
+            sound.stop();
+        });
+
+        function setCursor(className: string) {
+        if (renderer.domElement.className !== className) { // Avoid unnecessary DOM manipulation
+                renderer.domElement.className = className;
+            }
+        }
+
+        
+        window.addEventListener('click', (ev) => {
+            const raycaster = new THREE.Raycaster();
+
+            const mouseNDC = new THREE.Vector2(
+                (ev.clientX / window.innerWidth) *  2 - 1,
+                -(ev.clientY / window.innerHeight) *  2 + 1,
+            );
+
+            raycaster.setFromCamera(mouseNDC,camera);
+        
+
+            const intersections = raycaster.intersectObjects(scene.children);
+
+            if (intersections.length > 0) {
+                if(intersections[0].object.name == 'post'){
+                    peepIdea.visible = false;
+                    plane_sheet.sequence.play({iterationCount: 1}).finally(()=>{
+                        p.innerHTML = "";
+                        news.visible = false;
+                        peepIdea.visible = true;
+                        peepsGroup.visible = true;
+                        dollyNode.position.x = dollyNode.position.x + 20;
+                        if(dollyNode.position.x > 280){
+                            dollyNode.position.x = 20;
+                        }
+                        plane_sheet.sequence.play({iterationCount: 1, direction: 'reverse', rate: 8})
+                    });
+                    cloud_bg_sheet.sequence.play({iterationCount: Infinity});
+                    console.log("post");
+                }
+                if(intersections[0].object.name == 'mute'){
+                    if(sound.isPlaying){
+                        sound.stop();
+                    } else {
+                        sound.play();
+                    }
+                }
+                if(intersections[2].object.name == 'peep' || intersections[1].object.name == 'peep'){
+                    const randomItem = shortSocialSummaries[Math.floor(Math.random() * shortSocialSummaries.length)];
+                    news.visible = true;
+                    p.innerText = "";
+                    p.innerText = `${randomItem.title} \n\n${randomItem.tweet}`;
+                    console.log("peep")
+                }
+                else{
+                    console.log(intersections)
+                }
+            }
+
+
+        })
+
+        
         function animate() {
             for (let i = 0; i < peepsGroup.children.length; i++ && peepsGroup.visible) {
                 peepsGroup.children[i].position.x += peepsArray[i];
@@ -258,10 +397,8 @@
                 }
             }
             renderer.render(scene,camera);
+            css2DRenderer.render(scene, camera);
         }
-
-
-
         
 
         studio.initialize();
@@ -271,64 +408,13 @@
         const project = getProject("CIP Explorer");
 
         // sheet to animate the globe page
-        const globe_sheet = project.sheet("Globe");
         const plane_sheet = project.sheet("plane");
         const cloud_bg_sheet = project.sheet("cloud_bg");
 
 
-        globe_sheet.sequence.attachAudio({ source: './audio/intro.wav' }).then(() => {
-            console.log('Audio loaded!')
-        })
-
-        plane_sheet.sequence.attachAudio({ source: './audio/Plane_drive.wav' }).then(() => {
-            console.log('Audio loaded!')
-        })
-
-
-        const globeObj = globe_sheet.object("Globe", {
-            position: types.compound({
-                x: types.number(globe.position.x, { range: [-10, 10] }),
-                y: types.number(globe.position.y, { range: [-10, 10] }),
-                z: types.number(globe.position.z, { range: [-10, 10] }),
-            }),
-            rotation: types.compound({
-                x: types.number(globe.rotation.x, { range: [-2, 2] }),
-                y: types.number(globe.rotation.y, { range: [-2, 2] }),
-                z: types.number(globe.rotation.z, { range: [-2, 2] }),
-            }),
-        })
-
-        globeObj.onValuesChange((values) => {
-            const { x, y, z } = values.position;
-            globe.position.set(x, y, z);
-            globe.rotation.set(values.rotation.x * Math.PI, values.rotation.y * Math.PI, values.rotation.z * Math.PI);
-        });
-
-        const camUIObj = globe_sheet.object("CamUI", {
-            visibility: types.boolean(false),
-        });
-
-        camUIObj.onValuesChange((values) => {
-            camUI.visible = values.visibility;
-        });
-
-        const introPeepObj = globe_sheet.object("IntroPeep", {
-            visibility: types.boolean(false),
-            scale: types.compound({
-                x: types.number(peep.scale.x, { range: [-2, 2] }),
-                y: types.number(peep.scale.y, { range: [-2, 2] }),
-                z: types.number(peep.scale.z, { range: [-2, 2] }),
-            }),
-        })
-
-        introPeepObj.onValuesChange((values) => {
-            peep.visible = values.visibility;
-            peep.scale.set(+(values.scale.x.toFixed(1)), +(values.scale.y.toFixed(1)), +(values.scale.z.toFixed(1)));
-            peep2.visible = values.visibility;
-            peep2.scale.set(+(values.scale.x.toFixed(1)), +(values.scale.y.toFixed(1)), +(values.scale.z.toFixed(1)));
-            peep3.visible = values.visibility;
-            peep3.scale.set(+(values.scale.x.toFixed(1)), +(values.scale.y.toFixed(1)), +(values.scale.z.toFixed(1)));
-        });
+        // plane_sheet.sequence.attachAudio({ source: './audio/Plane_drive.wav' }).then(() => {
+        //     console.log('Audio loaded!')
+        // })
 
         const planeObj = plane_sheet.object("plane", {
             position: types.compound({
@@ -409,6 +495,7 @@
             }),
         })
 
+
         stamp1Obj.onValuesChange((values) => {
             stamp1.position.set(values.position.x, values.position.y, values.position.z);
             stamp1.rotation.set(values.rotation.x * Math.PI, values.rotation.y * Math.PI, values.rotation.z * Math.PI);
@@ -466,3 +553,4 @@
         overflow: hidden; /* Prevent any scrollbars on the main page */
     }
 </style>
+

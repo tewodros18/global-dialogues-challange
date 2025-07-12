@@ -42,6 +42,7 @@
 		"@theatre/studio": "^0.7.2",
 		"@tweenjs/tween.js": "^25.0.0",
 		"@types/three": "^0.178.0",
-		"three": "^0.178.0"
+		"three": "^0.178.0",
+		"troika-three-text": "^0.52.4"
 	}
 }

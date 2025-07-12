@@ -1,38 +1,16 @@
-# sv
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+![CIPExplorer-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/232a130e-386a-457f-8c2a-0688cab95613)
 
-## Creating a project
+# Scrollytelling for the Global Dialogues Challenge.
 
-If you're seeing this, you've probably already done this step. Congrats!
+Global Dialogues by CIP, collected responses from thousands of people in over 70 countries around the world. Each with their own distinct languages, religions, and cultural backgrounds. The dataset contains opinions, recurring polls and much more! I built a small web experience to depict the global conversation from the dataset.
 
-```bash
-# create a new project in the current directory
-npx sv create
+A summerized results of polls, and opinions section is provided during the experience!
 
-# create a new project in my-app
-npx sv create my-app
-```
+# How it was built!
 
-## Developing
+I used theater.js, three.js and svelte
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
 
-```bash
-npm run dev
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
 
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.

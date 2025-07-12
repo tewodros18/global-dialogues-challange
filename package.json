@@ -38,6 +38,7 @@
 		"vitest-browser-svelte": "^0.1.0"
 	},
 	"dependencies": {
+		"@sveltejs/adapter-node": "^5.2.13",
 		"@theatre/core": "^0.7.2",
 		"@theatre/studio": "^0.7.2",
 		"@tweenjs/tween.js": "^25.0.0",

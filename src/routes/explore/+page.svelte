@@ -177,7 +177,7 @@
         */
 
         //@ts-ignore
-        var peepsArray = [];
+        var peepsArray: int = [];
 
         const peepsGroup = new THREE.Group();
         var peepZindex = -2.5;

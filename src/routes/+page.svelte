@@ -14,9 +14,15 @@
     //@ts-ignore
     import {Text} from 'troika-three-text';
 	import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
+    import projectState from './state.json'
+    
 
     if(browser){
         const textureLoader = new THREE.TextureLoader();
+        const project = getProject("CIP Explorer", { state: projectState });
+        const plane_sheet = project.sheet("plane");
+        const cloud_bg_sheet = project.sheet("cloud_bg");
+
         var texture = textureLoader.load('globe.png')
         texture.colorSpace = THREE.SRGBColorSpace; // Ensure the texture is in sRGB color space
         const renderer = new THREE.WebGLRenderer();
@@ -360,7 +366,8 @@
                         if(dollyNode.position.x > 280){
                             dollyNode.position.x = 20;
                         }
-                        plane_sheet.sequence.play({iterationCount: 1, direction: 'reverse', rate: 8})
+                        project.ready.then(() => plane_sheet.sequence.play({iterationCount: 1, direction: 'reverse', rate: 8}))
+                       
                     });
                     cloud_bg_sheet.sequence.play({iterationCount: Infinity});
                     console.log("post");
@@ -372,12 +379,14 @@
                         sound.play();
                     }
                 }
-                if(intersections[2].object.name == 'peep' || intersections[1].object.name == 'peep'){
-                    const randomItem = shortSocialSummaries[Math.floor(Math.random() * shortSocialSummaries.length)];
-                    news.visible = true;
-                    p.innerText = "";
-                    p.innerText = `${randomItem.title} \n\n${randomItem.tweet}`;
-                    console.log("peep")
+                if(intersections.length >= 2){
+                    if(intersections[2].object.name == 'peep' || intersections[1].object.name == 'peep'){
+                        const randomItem = shortSocialSummaries[Math.floor(Math.random() * shortSocialSummaries.length)];
+                        news.visible = true;
+                        p.innerText = "";
+                        p.innerText = `${randomItem.title} \n\n${randomItem.tweet}`;
+                        console.log("peep")
+                    }
                 }
                 else{
                     console.log(intersections)
@@ -402,14 +411,14 @@
         
 
         studio.initialize();
+        studio.ui.hide()
 
         // Theatre.js setup
 
-        const project = getProject("CIP Explorer");
+        
 
         // sheet to animate the globe page
-        const plane_sheet = project.sheet("plane");
-        const cloud_bg_sheet = project.sheet("cloud_bg");
+        
 
 
         // plane_sheet.sequence.attachAudio({ source: './audio/Plane_drive.wav' }).then(() => {
@@ -524,14 +533,6 @@
         dollyCloud2.onValuesChange((values) => {
             locCloud2.position.set(values.position.x, values.position.y, values.position.z);
         });
-
-
-
-
-        
-
-
-
 
     }
 
